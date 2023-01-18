@@ -1,0 +1,53 @@
+1- SQL code to create the messages and likes tables, and the trigger:
+
+-- Create messages table
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create likes table
+CREATE TABLE likes (
+    id SERIAL PRIMARY KEY,
+    message_id INTEGER REFERENCES messages(id),
+    user_id INTEGER REFERENCES users(id)
+);
+
+-- Create trigger to update likes count on messages table
+CREATE OR REPLACE FUNCTION update_likes_count() RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE messages SET likes_count = (SELECT COUNT(*) FROM likes WHERE message_id = NEW.message_id) WHERE id = NEW.message_id;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_likes_count
+AFTER INSERT OR DELETE ON likes
+FOR EACH ROW
+EXECUTE FUNCTION update_likes_count();
+
+2- Flask routes and functions to handle creating and querying messages and likes:
+
+
+
+
+
+3- Instructions for how to set up and run the API:
+
+Install Flask and Flask-SQLAlchemy by running the following command:
+
+pip install Flask Flask-SQLAlchemy
+Create a new file called app.py and copy the provided Flask routes and functions into the file.
+
+In the app.py file, update the SQLALCHEMY_DATABASE_URI configuration with your own PostgreSQL connection string in the following format: postgresql://username:password@host:port/database
+
+Create the messages and likes tables and the trigger in your PostgreSQL database using the provided SQL code.
+
+Run the following command to start the Flask development server:
+
+export FLASK_APP=app.py
+flask run
+Test the API by sending HTTP requests to the endpoint. For example, you can use curl or postman to send a POST request to the /messages endpoint to create a new message.
+Note: This is a basic example of how to setup the API. Depending on your requirements you may need to add more functionality, error handling and security features.
